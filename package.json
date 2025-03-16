@@ -1,0 +1,37 @@
+{
+  "name": "overnight-finance-test",
+  "version": "1.0.0",
+  "description": "Test task - Uniswap V3 liquidity management",
+  "scripts": {},
+  "author": "LP",
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.2.2",
+    "@nomiclabs/hardhat-etherscan": "^3.0.3",
+    "@nomiclabs/hardhat-truffle5": "^2.0.0",
+    "@nomiclabs/hardhat-waffle": "^2.0.6",
+    "@nomiclabs/hardhat-web3": "^2.0.0",
+    "@openzeppelin/hardhat-upgrades": "^1.18.0",
+    "@typechain/hardhat": "^9.1.0",
+    "bn.js": "^5.2.0",
+    "chai": "^4.3.4",
+    "chai-as-promised": "^7.1.1",
+    "chai-bn": "^0.3.0",
+    "cli-ux": "^5.6.3",
+    "command-line-args": "^5.2.0",
+    "command-line-usage": "^6.1.1",
+    "dotenv": "^10.0.0",
+    "hardhat": "^2.4.3",
+    "hardhat-etherscan": "^1.0.1",
+    "solidity-coverage": "^0.7.16",
+    "time-ago": "^0.2.1",
+    "toposort": "^2.0.2",
+    "web3": "^1.4.0"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^3.4.2",
+    "@openzeppelin/contracts-upgradeable": "4.9.6",
+    "@uniswap/v3-core": "^1.0.1",
+    "@uniswap/v3-periphery": "^1.4.4",
+    "solc": "^0.7.6"
+  }
+}
