@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.7.6; //had to
+pragma solidity ^0.7.6; // Solidity version 0.7.6 is used due to compatibility requirements //had to
 pragma abicoder v2; //Enables ABI coder v2 for structs in function parameters (had to)
 
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import "@uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol";
 import "@uniswap/v3-periphery/contracts/libraries/LiquidityAmounts.sol";
@@ -12,7 +12,7 @@ import "@uniswap/v3-core/contracts/libraries/TickMath.sol";
 // LiquidityPositionManager allows users to create Uniswap V3 positions with a specified width.
 contract LiquidityPositionManager is ReentrancyGuard {
     INonfungiblePositionManager public immutable positionManager;
-    int24 public constant MAX_ALLOWED_TICK_DEVIATION = 200;
+    int24 public constant MAX_ALLOWED_TICK_DEVIATION = 200; // Prevents liquidity provision in extreme market conditions
 
     // Events for external tracking of liquidity operations
     event LiquidityPositionCreated(
@@ -25,8 +25,8 @@ contract LiquidityPositionManager is ReentrancyGuard {
         int24 upperTick
     );
 
-    event ExcessTokensReturned(address indexed user, address token, uint256 amount);
-    event LiquidityComputationFailed(address indexed user, string reason);
+    event ExcessTokensReturned(address indexed user, address token, uint256 amount);  // Emitted when excess tokens are refunded
+    event LiquidityComputationFailed(address indexed user, string reason); // Emitted when liquidity calculation fails
 
     struct PositionMetadata {
         address token0;
@@ -42,6 +42,14 @@ contract LiquidityPositionManager is ReentrancyGuard {
         positionManager = INonfungiblePositionManager(_positionManager);
     }
 
+    /**
+    * @dev Creates a liquidity position on Uniswap V3
+    * @param pool The Uniswap V3 pool address
+    * @param desiredAmount0 The amount of token0 to add
+    * @param desiredAmount1 The amount of token1 to add
+    * @param positionWidth The width of the liquidity position (defined as per formula)
+    * @param slippageTolerance Allowed slippage tolerance percentage
+    */
     function createLiquidityPosition(
         address pool,
         uint256 desiredAmount0,
@@ -84,6 +92,11 @@ contract LiquidityPositionManager is ReentrancyGuard {
         _refundTokens(data.token1, desiredAmount1, actualAmount1);
     }
 
+    /**
+     * @dev Computes the tick and price range for liquidity provision.
+     * @param pool Address of the Uniswap V3 pool
+     * @param positionWidth The width of the liquidity position
+     */
     function preparePosition(address pool, uint256 positionWidth) internal view returns (PositionMetadata memory data) {
         IUniswapV3Pool v3Pool = IUniswapV3Pool(pool);
 
@@ -105,7 +118,9 @@ contract LiquidityPositionManager is ReentrancyGuard {
         require(data.lowerTick < data.upperTick, "Invalid tick range");
     }
 
-
+    /**
+     * @dev Computes the lower and upper sqrt price boundaries based on the given position width.
+     */
     function _determinePriceRange(uint160 currentSqrtPriceX96, uint256 positionWidth) internal pure returns (uint160 lowerSqrtPriceX96, uint160 upperSqrtPriceX96) {
         require(positionWidth > 0, "Invalid position width");
 
@@ -120,6 +135,9 @@ contract LiquidityPositionManager is ReentrancyGuard {
         require(lowerSqrtPriceX96 < upperSqrtPriceX96, "Invalid price range");
     }
 
+    /**
+    * @dev Handles token transfers before liquidity minting
+    */
     function _handleTokenTransfers(address token0, address token1, uint256 amount0, uint256 amount1) internal {
         IERC20(token0).transferFrom(msg.sender, address(this), amount0);
         IERC20(token1).transferFrom(msg.sender, address(this), amount1);
@@ -127,6 +145,9 @@ contract LiquidityPositionManager is ReentrancyGuard {
         IERC20(token1).approve(address(positionManager), amount1);
     }
 
+    /**
+     * @dev Refunds excess tokens to the user if more tokens were transferred than needed.
+     */
     function _refundTokens(address token, uint256 desiredAmount, uint256 actualAmount) internal {
         if (actualAmount < desiredAmount) {
             uint256 refundAmount = desiredAmount - actualAmount;
@@ -135,6 +156,10 @@ contract LiquidityPositionManager is ReentrancyGuard {
         }
     }
 
+    /**
+     * @dev Adjusts the given tick value to be a multiple of the pool's tick spacing.
+     * Ensures that the ticks align with the Uniswap V3 pool tick spacing requirement.
+     */
     function _adjustTickToSpacing(int24 tick, int24 spacing) internal pure returns (int24) {
         int24 adjustedTick = tick / spacing;
         if (tick < 0 && (tick % spacing != 0)) {
